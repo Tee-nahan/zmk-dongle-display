@@ -99,7 +99,29 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
     lv_obj_t *label = battery_objects[state.source].label;
 
     draw_battery(symbol, state.level, state.usb_present);
-    lv_label_set_text_fmt(label, "%4u%% ", state.level);
+
+    char battery_label = ' ';
+#if IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY)
+    if (state.source == 0) {
+        battery_label = 'C';
+    } else if (state.source == 1) {
+        battery_label = 'L';
+    } else if (state.source == 2) {
+        battery_label = 'R';
+    }
+#else
+    if (state.source == 0) {
+        battery_label = 'L';
+    } else if (state.source == 1) {
+        battery_label = 'R';
+    }
+#endif
+
+    if (battery_label != ' ') {
+        lv_label_set_text_fmt(label, "%c %3u%% ", battery_label, state.level);
+    } else {
+        lv_label_set_text_fmt(label, "%4u%% ", state.level);
+    }
     
     if (state.level > 0 || state.usb_present) {
         lv_obj_clear_flag(symbol, LV_OBJ_FLAG_HIDDEN);

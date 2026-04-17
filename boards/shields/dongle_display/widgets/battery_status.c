@@ -114,6 +114,8 @@ static void set_battery_symbol(lv_obj_t *widget, struct battery_state state) {
         battery_label = 'L';
     } else if (state.source == 1) {
         battery_label = 'R';
+    } else if (state.source == 2) {
+        battery_label = 'T';
     }
 #endif
 
@@ -181,6 +183,14 @@ ZMK_SUBSCRIPTION(widget_dongle_battery_status, zmk_usb_conn_state_changed);
 #endif /* !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL) */
 #endif /* IS_ENABLED(CONFIG_ZMK_DONGLE_DISPLAY_DONGLE_BATTERY) */
 
+/* T (source 2) at top, L (source 0) middle, R (source 1) bottom */
+static int source_to_display_row(int source) {
+    if (source == 2) return 0;
+    if (source == 0) return 1;
+    if (source == 1) return 2;
+    return source;
+}
+
 int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_status *widget, lv_obj_t *parent) {
     widget->obj = lv_obj_create(parent);
 
@@ -192,7 +202,7 @@ int zmk_widget_dongle_battery_status_init(struct zmk_widget_dongle_battery_statu
 
         lv_canvas_set_buffer(image_canvas, battery_image_buffer[i], 5, 8, LV_COLOR_FORMAT_L8);
 
-        lv_obj_align(image_canvas, LV_ALIGN_TOP_RIGHT, 0, i * 10);
+        lv_obj_align(image_canvas, LV_ALIGN_TOP_RIGHT, 0, source_to_display_row(i) * 10);
         lv_obj_align_to(battery_label, image_canvas, LV_ALIGN_OUT_LEFT_MID, 0, 0);
 
         lv_obj_add_flag(image_canvas, LV_OBJ_FLAG_HIDDEN);
